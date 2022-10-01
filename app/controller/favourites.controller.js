@@ -9,22 +9,29 @@ const User = db.user;
 //Create EBook Record
 exports.createBookmark = async (req, res) => {
   try {
+    console.log("asdajhvsdhvs")
     let users = await User.findOne({ where: { userId: req.body.user_Id } });
     if (!users) {
       return res.status(400).send({ message: "User not found", status: 400 });
     }
+    console.log(users, "dsadlj")
      let getData = await favourites.findOne({
       where: { userId: req.body.user_Id, file_Id: req.body.file_Id },
     });
+    console.log(getData, "dgefsjb")
+
     if (getData) {
       await favourites.destroy({ where: { userId: req.body.user_Id, file_Id: req.body.file_Id }, });
       return res.status(200).send({message : "Un Bookmarked Successfully", status:200})
     }
     else {
+      console.log("sdakdvavkjdbsajd")
       if (req.body.type === "Ebook") {
-        let data = await Ebook.findOne({
-          where: { file_Id: req.body.file_Id },
-        });
+        console.log("dadhkskhjbdlkab")
+        let data = await Ebook.findOne({ where: { file_Id: req.body.file_Id } });
+        console.log("&&&&&&&&&&&&&&&")
+        console.log(data, "dataaaaaaaaaaaaaaa")
+        console.log("&&&&&&&&&&&&&&&")
         let Obj = {
           userId: req.body.user_Id,
           file_Id: req.body.file_Id,
@@ -36,7 +43,8 @@ exports.createBookmark = async (req, res) => {
           amount: data.dataValues.amount,
           type: req.body.type,
           modeOfPayment: data.dataValues.modeOfPayment,
-          typeOfVideo: "Null"
+          typeOfVideo: "Null",
+          category:data.dataValues.category
         }
         await favourites.create(Obj);
         return res.status(200).send({ data: Obj, status: 200 });
@@ -55,7 +63,9 @@ exports.createBookmark = async (req, res) => {
           thumbnail: data.dataValues.thumbnail,
           amount: data.dataValues.amount,
           modeOfPayment: data.dataValues.modeOfPayment,
-          typeOfVideo: "Null"
+          typeOfVideo: "Null",
+          type:req.body.type,
+          category:data.dataValues.category
         }
         await favourites.create(Obj);
         return res.status(200).send({ data: Obj, status: 200 });
@@ -76,7 +86,8 @@ exports.createBookmark = async (req, res) => {
           type: req.body.type,
           amount: data.dataValues.amount,
           modeOfPayment: data.dataValues.modeOfPayment,
-          typeOfVideo: data.dataValues.typeOfVideo
+          typeOfVideo: data.dataValues.typeOfVideo,
+          category:data.dataValues.category
         }
         await favourites.create(Obj);
         return res.status(200).send({ data: Obj, status: 200 });
@@ -89,8 +100,11 @@ exports.createBookmark = async (req, res) => {
 
 exports.getBookmarksByUserId = async (req, res) => {
   try {
+    console.log("Adsasdjkdn")
     let id = req.params.user_Id;
-    let data = await favourites.findAll({ where: { userId: id } });
+  
+    let data = await favourites.findAll({ where: { userId: id }});
+   
     if (!data) {
       return res.status(400).send("No Bookmarks Found for these User");
     }
@@ -105,6 +119,7 @@ exports.getBookmarksByUserId = async (req, res) => {
         Ebooks.push(K);
       };
       if (K.type === 'Article') {
+        console.log(K.file_Id)
         let data = await Article.findOne({
           where: { file_Id: K.dataValues.file_Id }
         })

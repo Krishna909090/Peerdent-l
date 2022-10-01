@@ -1,4 +1,4 @@
-module.exports = (sequelize, Sequelize) => {
+module.exports = (sequelize, Sequelize, DataTypes) => {
   const User = sequelize.define("user", {
     firstname: {
       type: Sequelize.STRING
@@ -43,7 +43,7 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.STRING
     },
     skill: {
-      type: Sequelize.STRING
+      type: Sequelize.ARRAY(Sequelize.TEXT) 
     },
     highschool: {
       type: Sequelize.STRING
@@ -55,6 +55,9 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.STRING
     },
     specialization:{
+      type: Sequelize.STRING
+    },
+    role_Type:{
       type: Sequelize.STRING
     }
     });

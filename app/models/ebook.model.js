@@ -7,7 +7,8 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.STRING
     },
     amount: {
-      type: Sequelize.INTEGER
+      type: Sequelize.INTEGER,
+      allowNull: true,
     },
     file: {
       type: Sequelize.STRING

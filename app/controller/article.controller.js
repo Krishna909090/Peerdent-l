@@ -3,6 +3,7 @@ const aws = require("../../aws/aws");
 const Article = db.article;
 const User = db.user;
 const favourites = db.favourites;
+let Payment = db.payment
 const { Sequelize, Op } = require("sequelize");
 
 var multer = require("multer");
@@ -173,6 +174,8 @@ exports.edit = async (req, res) => {
 };
 
 exports.getAllFiles = async (req, res) => {
+  let userId = req.body.userId;
+  let array2;
   let data = req.body.filter;
   let p = req.body.order;
   let limit = req.body.size;
@@ -271,12 +274,20 @@ exports.getAllFiles = async (req, res) => {
     //To get All Files
     else {
       console.log("nothing was came")
-      await Article.findAndCountAll({
-      }).then((data) => {
-
+      await Article.findAll({ raw:true
+      }).then(async (data) => {
+       
         if (!data) {
           return  res.status(400).send({ message: "No Records Found", status: 400 })
         }
+        console.log("dsdsaknsonsdnfk", data)
+        if(userId){
+          array2 = await favourites.findAll({ where: { userId: userId }, raw: true });
+          let Obj =  await filterFiles(data,array2)
+          return res.status(200).send({ data: Obj, status: 200 });
+        }
+       
+       
         return res.status(200).send({ data: data, status: 200 });
       })
     }
@@ -287,14 +298,34 @@ exports.getAllFiles = async (req, res) => {
 };
 
 exports.getFileById = async (req, res) => {
-  let id = req.params.file_Id;
-  let data = await Article.findOne({ where: { file_Id: id } });
-  if (!data) {
+  let data1;
+  let id = req.query.file_Id
+  let userId = req.query.userId
+  data1 = await Article.findOne({ where: { file_Id: id }, raw: true});
+  if (!data1) {
     return res.status(400).send({message:"No Article was found with this ID", status:400});
   }
-  let type = data.dataValues.category
+  if(userId){
+    data1.statusInfo = false;
+    data1.IsPurchased = false;
+     //Checking the bookmark or not by the User
+     let data2 = await favourites.findOne({ where: { userId: userId, file_Id:id }, raw: true });
+     if(data2){
+        data1.statusInfo = true
+     }
+     //Checking the File whether Purchased or not
+     let data3 = await Payment.findOne({ where: { userId: userId, file_Id:id }, raw: true });
+     if(data3){
+       data1.IsPurchased = true
+     }
+    let type = data1.category
+    let Obj = await getRelatedArticles(type)
+    return res.status(200).send({RelatedFiles: Obj, data:data1, status:200})
+  }
+  let type = data1.category
   let Obj = await getRelatedArticles(type)
-  return res.status(200).send({RelatedFiles: Obj, data:data, status:200})
+  return res.status(200).send({RelatedFiles: Obj, data:data1, status:200})
+ 
 };
 
 exports.getFilesByUserId = async (req, res) => {
@@ -332,4 +363,18 @@ async function getRelatedArticles(params) {
     data.push(response)
   })
   return data
+}
+
+
+async function filterFiles(array1, array2){
+  console.log("aaaaa")
+  for( var i=0; i < array1.length;  i++) {
+    array1[i].statusInfo = false
+    for( var j=0; j<array2.length; j++) {
+        if (array1[i].file_Id === array2[j].file_Id) {
+            array1[i].statusInfo = array2[j].statusInfo
+        }
+      }
+    }
+ return array1;
 }

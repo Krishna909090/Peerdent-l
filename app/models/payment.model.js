@@ -30,11 +30,8 @@ module.exports = (sequelize, Sequelize) => {
       OrderId:{
         type: Sequelize.INTEGER
       },
-      expire_Date:{
-        type: Sequelize.DATE
-      },
-      purchased_Date:{
-        type: Sequelize.DATE
+      type:{
+        type:Sequelize.STRING
       }
       });
       return Payment;

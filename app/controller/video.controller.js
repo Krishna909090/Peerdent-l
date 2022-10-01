@@ -3,6 +3,7 @@ const aws = require("../../aws/aws");
 const Video = db.video;
 const User = db.user;
 const favourites = db.favourites;
+const Payment = db.payment;
 var multer = require('multer');
 const { Sequelize, Op } = require("sequelize");
 
@@ -41,7 +42,7 @@ exports.UploadVideoFiles = async (req, res) => {
 };
 
 exports.edit = async (req, res) => {
-
+ 
   try {
    
     const user = {
@@ -50,18 +51,20 @@ exports.edit = async (req, res) => {
       amount: req.body.amount,
       category: req.body.category,
       modeOfPayment:req.body.modeOfPayment,
-      typeOfVideo:req.body.typeOfVideo
+      typeOfVideo:req.body.typeOfVideo,
+      file:req.body.file
     };
     let users = await User.findOne({ where: { userId: req.body.user_Id } });
     if (!users) {
      return res.status(400).send({message:"User not found", status:400})
     }
+    console.log(user, "userrrr")
     await Video.update(user, {where: {file_Id :req.body.file_Id }});
     console.log(req.body.file_Id)
      let params =  await favourites.findOne({where: {file_Id :req.body.file_Id }});
-     console.log(params)
+     console.log(params, "kvhjh")
      if(params){
-      await favourites.findOne(user, {where: {file_Id :req.body.file_Id }});
+      await favourites.update(user, {where: {file_Id :req.body.file_Id }});
      }
     console.log("Asdaslmabisbjkdajfbv")
     let Obj = await Video.findOne({ where: { file_Id:req.body.file_Id } });
@@ -75,7 +78,8 @@ exports.edit = async (req, res) => {
 };
 
 exports.getALLVideoFiles = async (req, res) => {
-
+  let array2;
+  let userId = req.body.userId;
   let data = req.body.filter;
   let p = req.body.order;
   let limit = req.body.size;
@@ -171,11 +175,16 @@ exports.getALLVideoFiles = async (req, res) => {
     //To get All Files
     else {
       console.log("nothing was came")
-      await Video.findAndCountAll({
-      }).then((data) => {
+      await Video.findAll({raw:true
+      }).then(async (data) => {
 
         if (!data) {
           return res.status(400).send({ message: "No Records Found", status: 400 })
+        }
+        if(userId){
+           array2 = await favourites.findAll({ where: { userId: userId }, raw: true });
+          let Obj =  await filterFiles(data,array2)
+          return res.status(200).send({ data: Obj, status: 200 });
         }
         return res.status(200).send({ data: data, status: 200 });
       })
@@ -189,14 +198,34 @@ exports.getALLVideoFiles = async (req, res) => {
 
 
 exports.getVideoFileById = async (req, res) => {
-  let id = req.params.file_Id;
-  let data = await Video.findOne({ where: { file_Id: id } });
-  if (!data) {
+  let data1;
+  let id = req.query.file_Id
+  let userId = req.query.userId
+  data1 = await Video.findOne({ where: { file_Id: id }, raw:true });
+  if (!data1) {
     return res.status(400).send({message:"No Videos was found with this file Id", status:400});
   }
-  let type = data.dataValues.category
-  let Obj = await getRelatedVideos(type)
-  return res.status(200).send({RelatedFiles: Obj, data:data, status:200})
+  if(userId){
+    data1.statusInfo = false;
+    data1.IsPurchased = false;
+      //Checking the bookmark or not by the User
+      let data2 = await favourites.findOne({ where: { userId: userId, file_Id:id }, raw: true });
+      if(data2){
+         data1.statusInfo = true
+      }
+      //Checking the File whether Purchased or not
+      let data3 = await Payment.findOne({ where: { userId: userId, file_Id:id }, raw: true });
+      if(data3){
+        data1.IsPurchased = true
+      }
+    let type = data1.category
+    let Obj = await getRelatedVideos(type)
+    return res.status(200).send({RelatedFiles: Obj, data:data1, status:200})
+  }
+  let type = data1.category
+    let Obj = await getRelatedVideos(type)
+    return res.status(200).send({RelatedFiles: Obj, data:data1, status:200})
+
 };
 
 exports.getVideoFilesByUserId = async (req, res) => {
@@ -273,4 +302,17 @@ async function getRelatedVideos(params) {
     data.push(response)
   })
   return data
+}
+
+async function filterFiles(array1, array2){
+  console.log("aaaaa")
+  for( var i=0; i < array1.length;  i++) {
+    array1[i].statusInfo = false
+    for( var j=0; j<array2.length; j++) {
+        if (array1[i].file_Id === array2[j].file_Id) {
+            array1[i].statusInfo = array2[j].statusInfo
+        }
+      }
+    }
+ return array1;
 }

@@ -18,9 +18,11 @@ exports.Register = async (req, res) => {
     address: req.body.address,
     country: req.body.country,
     userId: userId,
+    role_Type:req.body.role_Type
   };
+  console.log(user, "user")
    
-  let email = await User.findOne({ where: { email: req.body.useremail } })
+ let email = await User.findOne({ where: { email: req.body.useremail } })
   if(email){
     return res.status(400).send({data:req.body.useremail, message:"Email already exists", status : 400})
   }
@@ -29,9 +31,9 @@ exports.Register = async (req, res) => {
   if(phonenumber){
     return res.status(400).send({data:req.body.phonenumber, message:"Phone number already exists", status : 400})
   }
-  console.log(user)
+  console.log(user, "jadjafbjnfnkndfksl")
   user.password = await bcrypt.hash(user.password, 10);
-  User.create(user)
+  await User.create(user)
     .then(data => {
       res.status(200).send({ data: data, message: "User Registered Successfully", status:200 });
     })
@@ -74,6 +76,7 @@ exports.login = async (req, res) => {
 // Update Profile
 exports.update = async (req, res) => {
   let params = req.body
+  console.log(params)
   const Id = params.userId;
   let data = await User.findOne({ where: { userId: Id } })
   if(!data){
@@ -82,20 +85,17 @@ exports.update = async (req, res) => {
   await User.update(params, {
     where: { userId: Id }
   })
-    .then(num => {
+    .then(async num => {
       if (num == 1) {
-        res.send({
-          message: "User Profile Updated Successfully", status:200
-        });
+        let data = await User.findOne({where :{ userId: Id }})
+        res.status(200).send({ data :data  ,message: "User Profile Updated Successfully", status:200 });
       } else {
-        res.send({
-          message: `Cannot update User details with id=${Id}!`
-        });
+        res.status(200).send({ message: `Cannot update User details with id=${Id}!`});
       }
     })
     .catch(err => {
       res.status(500).send({
-        message: "Error updating User details  with id=" + id
+        message: "Error updating User details  with id=" + Id
       });
     });
 };

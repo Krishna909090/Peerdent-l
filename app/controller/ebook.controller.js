@@ -3,6 +3,7 @@ const aws = require("../../aws/aws")
 const Ebook = db.ebook;
 const User = db.user;
 const favourites = db.favourites;
+const Payment = db.payment
 var multer = require('multer');
 const { Sequelize, Op } = require("sequelize");
 
@@ -153,6 +154,8 @@ exports.edit = async (req, res) => {
 
 
 exports.getAllFiles = async (req, res) => {
+  let array2;
+  let userId = req.body.userId;
   let data = req.body.filter;
   let p = req.body.order;
   let limit = req.body.size;
@@ -233,27 +236,42 @@ exports.getAllFiles = async (req, res) => {
     else if (req.body.filter) {
       console.log("came inside 0")
       let arr = data
-      await Ebook.findAndCountAll({
+      await Ebook.findAll({
         where: {
           category: arr
 
         }
-      }).then((response) => {
+      }).then(async (response) => {
         if (!response) {
           return res.status(400).send({ message: "No Records Found", status: 400 })
         }
+     //   let array2 = await favourites.findAll({  where: {
+      //    category: arr
+
+     //   }, raw: true });
+      // let Obj =  await filterFiles(data,array2, userId)
+     //  console.log(Obj, "Objjj")
         return res.status(200).send({ data: response, status: 200 });
       })
     }
 
     //To get All Files
     else {
+      
       console.log("nothing was came")
-      await Ebook.findAndCountAll({
-      }).then((data) => {
-
+      await Ebook.findAll({
+        raw: true }).then(async (data) => {
+        
         if (!data) {
           return res.status(400).send({ message: "No Records Found", status: 400 })
+        }
+        
+        console.log("dsdsaknsonsdnfk", data)
+        if(userId){
+          array2 = await favourites.findAll({ where: { userId: userId }, raw: true });
+          let Obj =  await filterFiles(data,array2)
+          console.log(Obj, "Adadad")
+           return res.status(200).send({ data: Obj, status: 200 });
         }
         return res.status(200).send({ data: data, status: 200 });
       })
@@ -265,17 +283,37 @@ exports.getAllFiles = async (req, res) => {
 }
 
 exports.getFileById = async (req, res) => {
-  let id = req.params.file_Id
-
-  let data = await Ebook.findOne({ where: { file_Id: id } })
-  if (!data) {
+  let data1;
+  let id = req.query.file_Id
+  let userId = req.query.userId
+  //Checking the Ebook
+  data1 = await Ebook.findOne({ where: { file_Id: id }, raw: true })
+  if (!data1) {
     return res.status(400).send({ message: "No Ebook was found with this ID", status: 400 });
   }
-  let type = data.dataValues.category
+  if(userId){
+    data1.statusInfo = false;
+    data1.IsPurchased = false;
+    //Checking the bookmark or not by the User
+    let data2 = await favourites.findOne({ where: { userId: userId, file_Id:id }, raw: true });
+    if(data2){
+       data1.statusInfo = true
+    }
+    //Checking the File whether Purchased or not
+    let data3 = await Payment.findOne({ where: { userId: userId, file_Id:id }, raw: true });
+    if(data3){
+      data1.IsPurchased = true
+    }
+    let type = data1.category
+    let Obj = await getRelatedFiles(type)
+    return res.status(200).send({ RelatedFiles: Obj, data: data1, status: 200 })
+  } 
+  let type = data1.category
   let Obj = await getRelatedFiles(type)
-  return res.status(200).send({ RelatedFiles: Obj, data: data, status: 200 })
-}
+  return res.status(200).send({ RelatedFiles: Obj, data: data1, status: 200 })
 
+}
+ 
 exports.getFilesByUserId = async (req, res) => {
   let id = req.params.user_Id
   let data = await Ebook.findAndCountAll({ where: { userId: id } })
@@ -311,6 +349,20 @@ async function getRelatedFiles(params) {
     data.push(response)
   })
   return data
+}
+
+
+async function filterFiles(array1, array2){
+  console.log("aaaaa")
+  for( var i=0; i < array1.length;  i++) {
+    array1[i].statusInfo = false
+    for( var j=0; j<array2.length; j++) {
+        if (array1[i].file_Id === array2[j].file_Id) {
+            array1[i].statusInfo = array2[j].statusInfo
+        }
+      }
+    }
+ return array1;
 }
 
 

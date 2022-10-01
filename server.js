@@ -19,6 +19,8 @@ const favourites = require("./app/controller/favourites.controller");
 const category = require("./app/controller/catergories.controller");
 const question = require("./app/controller/Q&A.controller");
 const payment = require("./app/controller/payment.controller")
+const Query = require("./app/controller/askAnExpert.controller")
+const employee = require("./app/controller/employee.controller")
 var router = require("express").Router();
 
  // create application/json parser
@@ -51,26 +53,26 @@ router.get("/getUserDetails/:user_Id", User.userDetails)
 
 //Ebook Related APIS*******************************************************
 router.post("/Ebooks", Ebook.create); // Create Ebook
-router.put("/updateEbooks", Ebook.edit); //Update Ebook
+router.post("/updateEbooks", Ebook.edit); //Update Ebook
 router.post("/getAllFiles", Ebook.getAllFiles); // Get ALL Ebooks
-router.get("/getFileById/:file_Id", Ebook.getFileById); // Get Ebook By Id
+router.get("/getFileById", Ebook.getFileById); // Get Ebook By Id
 router.get("/getFilesByUserId/:user_Id", Ebook.getFilesByUserId); // Get By User Id
 router.delete("/deleteFileById/:file_Id", Ebook.deleteByFileId); // Delete By File Id
 //**************************************************************************
 
 //Article Related APIS*******************************************************
 router.post("/createArticle", Article.createArticle); // Create Article
-router.put("/updateArticles", Article.edit); //Update Article
+router.post("/updateArticles", Article.edit); //Update Article
 router.post("/getAllArticles", Article.getAllFiles); // Get ALL Ebook Files
-router.get("/getArticleById/:file_Id", Article.getFileById); // Get ALL Ebook by File ID
+router.get("/getArticleById", Article.getFileById); // Get ALL Ebook by File ID
 router.get("/getArticlesByUserId/:user_Id", Article.getFilesByUserId); // Get Files by User Id
 router.delete("/deleteArticle/:file_Id", Article.deleteByFileId); // Delete Files by File Id
 //*********************************************************************************************
 
 //Video Related APIS********************************************************************************
 router.post("/Uploadvideos", Video.UploadVideoFiles); // Create Video Record
-router.put("/updateVideos", Video.edit)
-router.get("/getVideoFileById/:file_Id", Video.getVideoFileById); // Get Video By Id
+router.post("/updateVideos", Video.edit)
+router.get("/getVideoFileById", Video.getVideoFileById); // Get Video By Id
 router.post("/getAllVideoFiles", Video.getALLVideoFiles); // Get ALL Videos
 router.get("/getVideoFilesByUserId/:user_Id", Video.getVideoFilesByUserId); // Get Videos By User Id
 router.delete("/deleteVideoFileById/:file_Id", Video.deleteVideoFileById); // Delete Files by Video Id
@@ -92,6 +94,22 @@ router.delete("/deleteQuestion", question.deleteQuestion);
 router.delete("/deleteAnswer", question.deleteAnswer);
 //**********************************************************************************************************
 router.post("/payment", payment.payment )
+router.get("/getPurhasesByUserId/:user_Id", payment.getPurhasesByUserId)
+router.get("/getOrderByOrderId/:order_Id",payment.getOrderByOrderId)
+
+//******************************************************************************************************* 
+router.post("/postQuery", Query.createQuery)
+router.post("/postReply", Query.createReply)
+router.get("/getAllQueries", Query.getAllQueries)
+router.post("/updateReply", Query.updateReply)
+router.get("/viewQuery/:Id", Query.viewQuery)
+router.get("/getQueriesByUserId/:userId", Query.getQueriesByUserId)
+
+//********************************************************************************************************* *
+router.post("/addEmployee", employee.addEmployee)
+router.post("/updateEmployee", employee.update)
+router.get("/getEmployee", employee.getEmployee)
+router.get("/getAllEmployees", employee.listAllEmployees)
 
 
 app.use("/api/auth", router);

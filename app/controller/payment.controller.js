@@ -6,7 +6,7 @@ const Article = db.article;
 const Video = db.video;
 const Payment = db.payment;
 const User = db.user;
-const  moment = require("moment")
+let  moment = require("moment")
 
 //Create EBook Record
 exports.payment = async (req, res) => {
@@ -16,44 +16,40 @@ exports.payment = async (req, res) => {
     if (!users) {
       return res.status(400).send({ message: "User not found", status: 400 });
     }
-    let Info = await favourites.findOne({where: { file_Id: req.body.file_Id, userId: req.body.user_Id }})
-    if(Info){
-       statusInfo = Info.statusInfo
-    }else{
-      statusInfo = false
-    }
-    
-     
-  
+    // let Info = await Payment.findOne({where: { file_Id: req.body.file_Id, userId: req.body.user_Id }})
+    // if(Info){
+    //    statusInfo = Info.statusInfo
+    // }else{
+    //   statusInfo = false
+    // }
       if (req.body.type === "Ebook") {
           // check E-book table and get the data
         let data = await Ebook.findOne({
           where: { file_Id: req.body.file_Id },
         });
          let months = req.body.months;
+         console.log(months, "monthsss")
          let expire_Date = await calculateEndDate(months);
-         let remainingDays = await expiryDate(expire_Date)
+        //  let remainingDays = await expiryDate(expire_Date);
+        //  console.log(remainingDays, "remaining dayas")
         let Obj = {
           userId: req.body.user_Id,
           file_Id: req.body.file_Id,
           title:data.dataValues.title,
           category:data.dataValues.category,
-          statusInfo:statusInfo,
           content: data.dataValues.content,
           file: data.dataValues.file,
           thumbnail: data.dataValues.thumbnail,
           amount: data.dataValues.amount,
           type: req.body.type,
-          modeOfPayment: data.dataValues.modeOfPayment,
+          modeOfPayment: req.body.modeOfPayment,
           typeOfVideo: "Null",
-          OrderId:req.body.orderId,
-          expire_Date:  expire_Date,
-          
-          purchased_Date :  moment().format("DD-MM-YYYY")
+          OrderId:req.body.orderId
         }
+        console.log(Obj, "Obj")
         let params = await Payment.create(Obj);
-        params.dataValues.remainingDays = remainingDays;
-        console.log(params.da)
+        //params.dataValues.remainingDays = remainingDays;
+        console.log(params)
         return res.status(200).send({ data: params, status: 200 });
       }
       else if (req.body.type === "Article") {
@@ -71,11 +67,9 @@ exports.payment = async (req, res) => {
           thumbnail: data.dataValues.thumbnail,
           amount: data.dataValues.amount,
           type: req.body.type,
-          modeOfPayment: data.dataValues.modeOfPayment,
+          modeOfPayment:  req.body.modeOfPayment,
           typeOfVideo: "Null",
           OrderId:req.body.orderId,
-          expire_Date: await calculateEndDate(months),
-          purchased_Date :  moment().format("DD-MM-YYYY")
         }
         let params = await Payment.create(Obj);
         return res.status(200).send({ data: params, status: 200 });
@@ -95,13 +89,13 @@ exports.payment = async (req, res) => {
           thumbnail: data.dataValues.thumbnail,
           amount: data.dataValues.amount,
           type: req.body.type,
-          modeOfPayment: data.dataValues.modeOfPayment,
+          modeOfPayment: req.body.modeOfPayment,
           typeOfVideo: req.body.typeOfVideo,
           OrderId:req.body.orderId,
-          expire_Date: await calculateEndDate(months),
-          purchased_Date :  moment().format("DD-MM-YYYY")
+          type:req.body.type                                                                                                                                                                             
         }
         let params = await Payment.create(Obj);
+        console.log(params,"paramsss")
         return res.status(200).send({ data: params, status: 200 });
       }
     
@@ -112,15 +106,18 @@ exports.payment = async (req, res) => {
 
 exports.getPurhasesByUserId = async (req, res) => {
   try {
+    console.log(req.params.user_Id)
     let id = req.params.user_Id;
     let data = await Payment.findAll({ where: { userId: id } });
     if (!data) {
       return res.status(400).send("No Bookmarks Found for these User");
     }
+    console.log(data, "data")
     let Ebooks = [];
     let Articles = [];
     let Videos = [];
     for (let K of data) {
+ 
       if (K.type === 'Ebook') {
         let data = await Ebook.findOne({
           where: { file_Id: K.dataValues.file_Id }
@@ -146,20 +143,37 @@ exports.getPurhasesByUserId = async (req, res) => {
   }
 };
 
+exports.getOrderByOrderId = async (req, res) => {
+  console.log(req.params)
+  let id = req.params.order_Id
 
-
-async function expiryDate(date_string) {
-  var expiration = date_string
-  var current_date =  moment().format("DD-MM-YYYY");
-  console.log(current_date)
-  var days = moment(expiration).diff(current_date, 'days');
-  return days;
+  let Obj = await Payment.findOne({ where: { OrderId: id } })
+  if (!Obj) {
+    return res.status(400).send({ message: "No Order was found with this ID", status: 400 });
+  }
+  return res.status(200).send({ data: Obj,  status: 200 })
 }
 
+
+// async function expiryDate(date_string) {
+//   console.log(date_string, "dataaaa")
+//   const expiration = JSON.stringify(date_string)
+//   const current_date =  JSON.stringify(moment().format("DD-MM-YYYY"));
+//   console.log(current_date)
+//   // let date1 =moment(current_date);
+//   // let date2 = moment(expiration)
+//   let days = date2.diff(date1)
+//   console.log(days, "daysss")
+//   return days;
+// }
+
 async function calculateEndDate(params){
-  let startDate =  moment().format("DD-MM-YYYY");
-  let endDateMoment = moment(startDate);
-  endDateMoment.add(params, 'months')
+ console.log(params, "monthss")
+  let startDate =  moment().format('DD-MM-YYYY');
+  console.log(startDate, "Asdadasdad")
+  let endDateMoment =moment().add(1, 'M').format('DD-MM-YYYY');
+ 
+  console.log(endDateMoment, "sdadanijidn")
   return endDateMoment;
 }
 

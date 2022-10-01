@@ -4,7 +4,8 @@ module.exports = (sequelize, Sequelize) => {
         type: Sequelize.STRING
       },
       content: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: true,
       },
       amount: {
         type: Sequelize.INTEGER

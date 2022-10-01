@@ -33,7 +33,10 @@ module.exports = (sequelize, Sequelize) => {
       },
       typeOfVideo:{
         type:Sequelize.STRING
-      }
+      },
+      category: {
+        type: Sequelize.STRING
+      },
 
       });
       return favourites;
