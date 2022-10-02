@@ -34,7 +34,8 @@ module.exports = (sequelize, Sequelize, DataTypes) => {
         type: Sequelize.STRING
       },
       enable:{
-        type: Sequelize.BOOLEAN
+        type: Sequelize.BOOLEAN,
+        defaultValue: true,
       }
       });
       return employee;

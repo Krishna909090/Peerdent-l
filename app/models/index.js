@@ -26,4 +26,6 @@ db.payment = require("./payment.model")(sequelize, Sequelize);
 db.query = require("./askAnExpert.model")(sequelize, Sequelize);
 db.reply = require("./replyByExpert.model")(sequelize, Sequelize);
 db.employee = require("./employee.model")(sequelize, Sequelize);
+db.subscripton = require("./subscription.model")(sequelize, Sequelize);
+db.cms = require("./cms.model")(sequelize, Sequelize);
 module.exports = db;

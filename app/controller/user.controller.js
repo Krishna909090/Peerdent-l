@@ -1,6 +1,8 @@
 const db = require("../models");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { QueryTypes } = require('sequelize');
+const { sequelize } = require("../models");
 const User = db.user;
 
 // Registration
@@ -79,7 +81,11 @@ exports.update = async (req, res) => {
   console.log(params)
   const Id = params.userId;
   let data = await User.findOne({ where: { userId: Id } })
-  if(!data){
+  let data1 = await sequelize.query('SELECT * FROM users WHERE "userId" = 5421', { raw: true })
+  console.log("**********************************")
+  console.log(data1[0], "dataasdaa")
+  console.log("**********************************")
+    if(!data){
     return res.status(400).send({message:"User not found", status:400})
   }
   await User.update(params, {

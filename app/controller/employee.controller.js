@@ -4,7 +4,7 @@ const employee = db.employee;
 // Add Employee
 exports.addEmployee = async (req, res) => {
   let empId = Math.floor(Math.random() * Math.pow(8, 5))
-  const user = {
+  const emp = {
     firstname: req.body.firstname,
     lastname: req.body.lastname,
     email: req.body.useremail,
@@ -14,9 +14,9 @@ exports.addEmployee = async (req, res) => {
     country: req.body.country,
     empId: empId,
     role_Type:req.body.role_Type,
-    enable:true
+    enable:req.body.enable
   };
-  console.log(user, "user")
+  console.log(emp, "emp")
    
  let email = await employee.findOne({ where: { email: req.body.useremail } })
   if(email){
@@ -27,7 +27,7 @@ exports.addEmployee = async (req, res) => {
   if(phonenumber){
     return res.status(400).send({data:req.body.phonenumber, message:"Phone number already exists", status : 400})
   }
-  await employee.create(user)
+  await employee.create(emp)
     .then(data => {
       res.status(200).send({ data: data, message: "Employee Added Successfully", status:200 });
     })

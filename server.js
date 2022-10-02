@@ -18,9 +18,11 @@ const Video = require("./app/controller/video.controller");
 const favourites = require("./app/controller/favourites.controller");
 const category = require("./app/controller/catergories.controller");
 const question = require("./app/controller/Q&A.controller");
-const payment = require("./app/controller/payment.controller")
-const Query = require("./app/controller/askAnExpert.controller")
-const employee = require("./app/controller/employee.controller")
+const payment = require("./app/controller/payment.controller");
+const Query = require("./app/controller/askAnExpert.controller");
+const employee = require("./app/controller/employee.controller");
+const subscripton = require("./app/controller/subscription.controller");
+const cms = require("./app/controller/cms.controller");
 var router = require("express").Router();
 
  // create application/json parser
@@ -105,11 +107,22 @@ router.post("/updateReply", Query.updateReply)
 router.get("/viewQuery/:Id", Query.viewQuery)
 router.get("/getQueriesByUserId/:userId", Query.getQueriesByUserId)
 
-//********************************************************************************************************* *
+//**********************************************************************************************************
 router.post("/addEmployee", employee.addEmployee)
 router.post("/updateEmployee", employee.update)
 router.get("/getEmployee", employee.getEmployee)
 router.get("/getAllEmployees", employee.listAllEmployees)
+
+//***********************************************************************************************************
+router.post("/addSubscription", subscripton.addSubscription)
+router.post("/updateSubscription", subscripton.update)
+router.get("/getSubscription", subscripton.getSubscription)
+router.get("/getAllSubscriptions", subscripton.listAllSubscripton)
+
+//************************************************************************************************************
+router.post("/addCms", cms.addCms);
+router.post("/updateCms", cms.update);
+router.get("/getCms", cms.getCms)
 
 
 app.use("/api/auth", router);
